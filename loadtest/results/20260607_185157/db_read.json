@@ -1,0 +1,31 @@
+{
+  "mode": "read",
+  "duration_sec": 30.0202674,
+  "workers": 96,
+  "success": 428344,
+  "failed": 96,
+  "throughput": 14268.493824275529,
+  "error_rate": 0.0002240687144057511,
+  "p50_ms": 6.432,
+  "p95_ms": 10.219,
+  "p99_ms": 15.172,
+  "min_ms": 1.029,
+  "max_ms": 52.763,
+  "samples": 428440,
+  "started_at": "2026-06-07T19:00:02+08:00",
+  "finished_at": "2026-06-07T19:00:32+08:00",
+  "errors_preview": [
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded",
+    "context deadline exceeded"
+  ]
+}

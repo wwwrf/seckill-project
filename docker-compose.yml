@@ -1,0 +1,126 @@
+name: seckill
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: seckill-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: ecommerce_db
+      TZ: Asia/Shanghai
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: seckill-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.3.2
+    container_name: seckill-rmq-namesrv
+    user: "0:0"
+    restart: unless-stopped
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - mkdir -p /home/rocketmq/logs/rocketmqlogs && cd /home/rocketmq/rocketmq-5.3.2/bin && sh mqnamesrv
+    ports:
+      - "9877:9876"
+    volumes:
+      - namesrv-logs:/home/rocketmq/logs
+    healthcheck:
+      test: ["CMD-SHELL", "ps -ef | grep -q '[N]amesrvStartup'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.3.2
+    container_name: seckill-rmq-broker
+    user: "0:0"
+    restart: unless-stopped
+    depends_on:
+      rocketmq-namesrv:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - mkdir -p /home/rocketmq/logs/rocketmqlogs /home/rocketmq/store && cd /home/rocketmq/rocketmq-5.3.2/bin && sh mqbroker -n rocketmq-namesrv:9876 -c /home/rocketmq/rocketmq-broker.conf
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+      - "10912:10912"
+    volumes:
+      - ./deploy/rocketmq/broker.conf:/home/rocketmq/rocketmq-broker.conf:ro
+      - broker-store:/home/rocketmq/store
+      - broker-logs:/home/rocketmq/logs
+    healthcheck:
+      test: ["CMD-SHELL", "ps -ef | grep -q '[B]rokerStartup'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  rmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: seckill-rmq-dashboard
+    restart: unless-stopped
+    depends_on:
+      rocketmq-namesrv:
+        condition: service_healthy
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876"
+    ports:
+      - "8081:8080"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seckill-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rocketmq-broker:
+        condition: service_healthy
+    working_dir: /app
+    command: ["/app/api"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      APP_CONFIG: docker
+      TZ: Asia/Shanghai
+
+volumes:
+  mysql-data:
+  redis-data:
+  namesrv-logs:
+  broker-store:
+  broker-logs:

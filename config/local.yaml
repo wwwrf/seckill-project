@@ -1,0 +1,65 @@
+server:
+  port: 8080
+  mode: debug # debug, release, test
+  snowflakeNode: 1 # 雪花算法节点ID (0-1023)，分布式部署时每个实例需不同
+
+jwt:
+  secret: "seckill-system-jwt-secret-key-2026-change-in-production"
+  expiryHours: 24 # Token 有效期（小时）
+
+admin:
+  token: "change-this-admin-token-in-production" # 管理接口鉴权令牌（请求头 X-Admin-Token）
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: "@Wrf120855"
+  database: ecommerce_db
+  charset: utf8mb4
+  parseTime: true
+  loc: Local
+  maxIdleConns: 60
+  maxOpenConns: 120
+  connMaxLifetime: 3600 # 秒
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+  poolSize: 1200 # 秒杀场景需要较大的连接池
+  minIdleConns: 300 # 最小空闲连接，避免突发流量建连
+  pendingExpireSeconds: 300
+
+rocketmq:
+  nameServer: 127.0.0.1:9876
+  groupName: seckill_group
+  retryTimes: 2 # 发送失败重试次数（应对轻微网络抖动，总尝试 3 次）
+  timeout: 3 # 发送超时时间（秒），秒杀场景对延迟敏感
+
+ratelimit:
+  ip:
+    enabled: false # 压测时可改为 false 或调高 rps/burst
+    rps: 2000
+    burst: 4000
+  user:
+    enabled: true # 压测时可临时放宽，用于探索系统上限
+    rps: 12
+    burst: 24
+
+agent:
+  intent:
+    llm_enabled: false # true 时启用 Eino OpenAI 模型做意图识别
+    openai:
+      api_key: ""
+      model: "gpt-4o-mini"
+      base_url: "" # 兼容代理或兼容 OpenAI API 的网关
+
+log:
+  level: info # debug, info, warn, error
+  filename: logs/app.log
+  maxSize: 100 # MB
+  maxBackups: 10
+  maxAge: 30 # 天
+  compress: true

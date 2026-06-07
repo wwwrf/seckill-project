@@ -1,0 +1,165 @@
+{
+    "metrics": {
+        "data_received": {
+            "count": 75380123,
+            "rate": 864017.9708292305
+        },
+        "iteration_duration": {
+            "p(95)": 9140.637289999999,
+            "avg": 7261.518723218117,
+            "min": 617.6314,
+            "med": 8816.5375,
+            "max": 9190.1118,
+            "p(90)": 9132.16612
+        },
+        "data_sent": {
+            "count": 145541491,
+            "rate": 1668217.8102214125
+        },
+        "http_req_duration": {
+            "p(95)": 9.6647,
+            "avg": 3.2205770490610894,
+            "min": 0,
+            "med": 1.5812,
+            "max": 806.7338,
+            "p(90)": 7.032090000000002
+        },
+        "http_req_blocked": {
+            "p(95)": 0,
+            "avg": 0.002369889491807719,
+            "min": 0,
+            "med": 0,
+            "max": 7.2518,
+            "p(90)": 0
+        },
+        "vus_max": {
+            "value": 1200,
+            "min": 200,
+            "max": 1200
+        },
+        "http_req_sending": {
+            "avg": 0.00133423506784489,
+            "min": 0,
+            "med": 0,
+            "max": 2.4997,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 3.2205770490610894,
+            "min": 0,
+            "med": 1.5812,
+            "max": 806.7338,
+            "p(90)": 7.032090000000002,
+            "p(95)": 9.6647
+        },
+        "http_req_connecting": {
+            "avg": 0.0019164678356388928,
+            "min": 0,
+            "med": 0,
+            "max": 2.3738,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "vus": {
+            "value": 60,
+            "min": 60,
+            "max": 1200
+        },
+        "txn_failed": {
+            "count": 584,
+            "rate": 6.693893229177546
+        },
+        "txn_e2e_latency_ms": {
+            "p(90)": 9127,
+            "p(95)": 9136,
+            "avg": 7159.651064594376,
+            "min": 612,
+            "med": 8801,
+            "max": 9185,
+            "thresholds": {
+                "p(95)<1500": true,
+                "p(99)<2500": true
+            }
+        },
+        "http_req_receiving": {
+            "avg": 0.039466253032035645,
+            "min": 0,
+            "med": 0,
+            "max": 13.1006,
+            "p(90)": 0,
+            "p(95)": 0.5197
+        },
+        "dropped_iterations": {
+            "count": 17284,
+            "rate": 198.1117304333985
+        },
+        "iterations": {
+            "count": 11715,
+            "rate": 134.27903969146396
+        },
+        "http_reqs": {
+            "count": 302602,
+            "rate": 3468.4682858486026
+        },
+        "http_req_waiting": {
+            "p(95)": 9.618395000000001,
+            "avg": 3.179776560961177,
+            "min": 0,
+            "med": 1.5739,
+            "max": 806.7338,
+            "p(90)": 6.994090000000003
+        },
+        "txn_success": {
+            "count": 11131,
+            "rate": 127.58514646228642
+        },
+        "http_req_tls_handshaking": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0
+        },
+        "txn_poll_timeout": {
+            "count": 584,
+            "rate": 6.693893229177546
+        },
+        "checks": {
+            "passes": 22262,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 302602,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "pay http 200": {
+                    "passes": 11131,
+                    "fails": 0,
+                    "name": "pay http 200",
+                    "path": "::pay http 200",
+                    "id": "825e5d643f057d2d3e8855e5c2d623ea"
+                },
+                "pay biz success": {
+                    "name": "pay biz success",
+                    "path": "::pay biz success",
+                    "id": "b98f237064fda4ff76eee91533774769",
+                    "passes": 11131,
+                    "fails": 0
+                }
+            }
+    }
+}

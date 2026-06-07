@@ -1,0 +1,291 @@
+basePath: /
+definitions:
+  handler.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.RegisterRequest:
+    properties:
+      password:
+        maxLength: 64
+        minLength: 6
+        type: string
+      username:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.SeckillRequest:
+    properties:
+      activity_id:
+        description: 秒杀活动 ID
+        type: integer
+      product_id:
+        description: 商品 ID
+        type: integer
+    required:
+    - activity_id
+    - product_id
+    type: object
+  handler.WarmUpRequest:
+    properties:
+      activity_id:
+        type: integer
+    required:
+    - activity_id
+    type: object
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 基于 Go + Gin + Redis + RocketMQ 的高并发秒杀系统
+  title: 秒杀系统 API
+  version: "1.0"
+paths:
+  /api/v1/activity/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据活动 ID 查询秒杀活动详情（三级缓存）
+      parameters:
+      - description: 活动ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 查询秒杀活动详情
+      tags:
+      - 商品
+  /api/v1/admin/seed:
+    post:
+      consumes:
+      - application/json
+      description: 一键创建测试商品和秒杀活动并自动预热（开发环境使用）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 测试数据创建成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 创建测试数据
+      tags:
+      - 管理后台
+  /api/v1/admin/warmup:
+    post:
+      consumes:
+      - application/json
+      description: 将指定秒杀活动的库存加载到 Redis 缓存中（布隆过滤器 + 库存 Key）
+      parameters:
+      - description: 预热请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.WarmUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 预热成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 秒杀活动预热
+      tags:
+      - 管理后台
+  /api/v1/order/{orderNo}:
+    get:
+      consumes:
+      - application/json
+      description: 根据订单号查询订单详情（仅能查看自己的订单）
+      parameters:
+      - description: 订单号
+        in: path
+        name: orderNo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询订单详情
+      tags:
+      - 订单
+  /api/v1/orders:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询当前登录用户的订单列表
+      parameters:
+      - description: 页码（默认1）
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量（默认10，最大50）
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询订单列表
+      tags:
+      - 订单
+  /api/v1/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据商品 ID 查询商品详情（三级缓存：L1 本地 → L2 Redis → L3 MySQL）
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 查询商品详情
+      tags:
+      - 商品
+  /api/v1/seckill:
+    post:
+      consumes:
+      - application/json
+      description: 提交秒杀下单请求（异步处理），需要先登录获取 Token
+      parameters:
+      - description: 秒杀请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SeckillRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 抢购成功，排队处理中
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 秒杀下单
+      tags:
+      - 秒杀
+  /api/v1/seckill/result:
+    get:
+      consumes:
+      - application/json
+      description: 轮询查询秒杀下单结果（SUCCESS / PROCESSING / FAILED）
+      parameters:
+      - description: 活动ID
+        in: query
+        name: activity_id
+        required: true
+        type: integer
+      - description: 商品ID
+        in: query
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询秒杀结果
+      tags:
+      - 秒杀
+  /api/v1/user/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名和密码登录，返回 JWT Token
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登录成功，返回 token 和 user_id
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 用户登录
+      tags:
+      - 用户
+  /api/v1/user/register:
+    post:
+      consumes:
+      - application/json
+      description: 通过用户名和密码注册新用户
+      parameters:
+      - description: 注册请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 注册成功
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 用户注册
+      tags:
+      - 用户
+securityDefinitions:
+  ApiKeyAuth:
+    description: Bearer JWT Token（格式：Bearer eyJhbG...)
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

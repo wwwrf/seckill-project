@@ -1,0 +1,165 @@
+{
+    "metrics": {
+        "http_req_duration": {
+            "med": 2.656,
+            "max": 593.9713,
+            "p(90)": 10.663960000000003,
+            "p(95)": 14.93404999999999,
+            "avg": 5.1254608769149534,
+            "min": 0
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 21.4722,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.001962170397940022,
+            "min": 0
+        },
+        "txn_e2e_latency_ms": {
+            "med": 2122,
+            "max": 9199,
+            "p(90)": 7320,
+            "p(95)": 8247.5,
+            "avg": 3054.091372715682,
+            "min": 609,
+            "thresholds": {
+                "p(95)<1500": true,
+                "p(99)<2500": true
+            }
+        },
+        "dropped_iterations": {
+            "count": 11065,
+            "rate": 124.2595538547021
+        },
+        "txn_poll_timeout": {
+            "count": 6778,
+            "rate": 76.11669733639141
+        },
+        "txn_failed": {
+            "count": 6828,
+            "rate": 76.67819554630873
+        },
+        "data_sent": {
+            "count": 128419118,
+            "rate": 1442142.0975232124
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 266799,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0
+        },
+        "vus": {
+            "max": 1200,
+            "value": 17,
+            "min": 17
+        },
+        "http_req_blocked": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.002352830033096075,
+            "min": 0,
+            "med": 0,
+            "max": 21.4722
+        },
+        "data_received": {
+            "count": 66394833,
+            "rate": 745611.5975451833
+        },
+        "http_req_waiting": {
+            "p(95)": 14.868249999999966,
+            "avg": 5.085174843234141,
+            "min": 0,
+            "med": 2.6458,
+            "max": 593.9713,
+            "p(90)": 10.6282
+        },
+        "iteration_duration": {
+            "p(90)": 9203.32858,
+            "p(95)": 9228.494075,
+            "avg": 6646.466219689624,
+            "min": 24.9267,
+            "med": 9147.71525,
+            "max": 9801.0254
+        },
+        "iterations": {
+            "count": 11534,
+            "rate": 129.52640706372654
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 5.1254608769149534,
+            "min": 0,
+            "med": 2.656,
+            "max": 593.9713,
+            "p(90)": 10.663960000000003,
+            "p(95)": 14.93404999999999
+        },
+        "vus_max": {
+            "value": 1200,
+            "min": 200,
+            "max": 1200
+        },
+        "http_reqs": {
+            "count": 266799,
+            "rate": 2996.1432181546015
+        },
+        "http_req_sending": {
+            "avg": 0.0010375072620212222,
+            "min": 0,
+            "med": 0,
+            "max": 13.2879,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "checks": {
+            "passes": 9412,
+            "fails": 0,
+            "value": 1
+        },
+        "txn_success": {
+            "count": 4706,
+            "rate": 52.848211517417816
+        },
+        "http_req_receiving": {
+            "p(90)": 0,
+            "p(95)": 0.521,
+            "avg": 0.039248526418764994,
+            "min": 0,
+            "med": 0,
+            "max": 2.9125
+        }
+    },
+    "root_group": {
+        "groups": {},
+        "checks": {
+                "pay http 200": {
+                    "name": "pay http 200",
+                    "path": "::pay http 200",
+                    "id": "825e5d643f057d2d3e8855e5c2d623ea",
+                    "passes": 4706,
+                    "fails": 0
+                },
+                "pay biz success": {
+                    "id": "b98f237064fda4ff76eee91533774769",
+                    "passes": 4706,
+                    "fails": 0,
+                    "name": "pay biz success",
+                    "path": "::pay biz success"
+                }
+            },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+}

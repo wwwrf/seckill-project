@@ -1,0 +1,86 @@
+{
+    "common": {
+        "base_url": "http://127.0.0.1:8080",
+        "activity_id": 1,
+        "product_id": 1,
+        "duration": "2m",
+        "poll_interval_ms": 300,
+        "poll_max_retries": 30,
+        "summary_dir": "loadtest/results"
+    },
+    "profiles": {
+        "db_read": {
+            "mysql_dsn": "root:root123456@tcp(127.0.0.1:3307)/ecommerce_db",
+            "max_user_id": 10000,
+            "max_order_id": 200000,
+            "rate_list": 600,
+            "rate_detail": 900,
+            "duration_list": "2m",
+            "duration_detail": "2m",
+            "pre_vus_list": 100,
+            "max_vus_list": 400,
+            "pre_vus_detail": 120,
+            "max_vus_detail": 500
+        },
+        "db_write": {
+            "mysql_dsn": "root:root123456@tcp(127.0.0.1:3307)/ecommerce_db",
+            "activity_id": 900001,
+            "product_id": 900001,
+            "start_user_id": 2000000,
+            "target_tps": 300,
+            "duration": "1m",
+            "pre_vus": 100,
+            "max_vus": 600
+        },
+        "db_read_fallback": {
+            "target_rps": 900,
+            "duration": "2m",
+            "pre_vus": 150,
+            "max_vus": 900,
+            "http_p95_ms": 600,
+            "http_p99_ms": 1200,
+            "http_error_rate": 0.03
+        },
+        "app_read": {
+            "target_rps": 1200,
+            "duration": "2m",
+            "pre_vus": 200,
+            "max_vus": 1200,
+            "http_p95_ms": 200,
+            "http_p99_ms": 400,
+            "http_error_rate": 0.02
+        },
+        "e2e_tps": {
+            "start_rps": 50,
+            "pre_vus": 200,
+            "max_vus": 1200,
+            "rps_stage_1": 120,
+            "rps_stage_2": 240,
+            "rps_stage_3": 320,
+            "rps_stage_4": 160,
+            "stage_1": "30s",
+            "stage_2": "40s",
+            "stage_3": "40s",
+            "stage_4": "20s",
+            "txn_p95_ms": 1500,
+            "txn_p99_ms": 2500,
+            "http_error_rate": 0.05
+        },
+        "seckill_submit": {
+            "base_url": "http://127.0.0.1:8080",
+            "activity_id": 1,
+            "product_id": 1,
+            "start_rps": 100,
+            "pre_vus": 300,
+            "max_vus": 2000,
+            "rps_stage_1": 300,
+            "rps_stage_2": 600,
+            "rps_stage_3": 900,
+            "rps_stage_4": 1200,
+            "stage_1": "30s",
+            "stage_2": "30s",
+            "stage_3": "30s",
+            "stage_4": "30s"
+        }
+    }
+}

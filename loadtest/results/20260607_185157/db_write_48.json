@@ -1,0 +1,31 @@
+{
+  "mode": "write",
+  "duration_sec": 20.0661099,
+  "workers": 48,
+  "success": 18682,
+  "failed": 25017,
+  "throughput": 931.0225097491367,
+  "error_rate": 0.572484496212728,
+  "p50_ms": 24.727,
+  "p95_ms": 47.684,
+  "p99_ms": 71.467,
+  "min_ms": 0,
+  "max_ms": 272.91,
+  "samples": 43699,
+  "started_at": "2026-06-07T19:09:03+08:00",
+  "finished_at": "2026-06-07T19:09:23+08:00",
+  "errors_preview": [
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections",
+    "Error 1040: Too many connections"
+  ]
+}

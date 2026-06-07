@@ -1,0 +1,71 @@
+server:
+  port: 8080
+  mode: release
+  snowflakeNode: 1
+
+jwt:
+  secret: "seckill-system-jwt-secret-key-2026-change-in-production"
+  expiryHours: 24
+
+admin:
+  token: "change-this-admin-token-in-production"
+
+mysql:
+  host: 127.0.0.1
+  port: 3307
+  username: root
+  password: "root123456"
+  database: ecommerce_db
+  charset: utf8mb4
+  parseTime: true
+  loc: Local
+  maxIdleConns: 32
+  maxOpenConns: 96
+  connMaxLifetime: 3600
+
+redis:
+  host: 127.0.0.1
+  port: 6380
+  password: ""
+  db: 0
+  poolSize: 1200
+  minIdleConns: 300
+  pendingExpireSeconds: 900
+
+rocketmq:
+  nameServer: 127.0.0.1:9877
+  groupName: seckill_group
+  retryTimes: 2
+  timeout: 3
+  txConsumerGoroutines: 24
+  txDispatchIntervalMs: 200
+  txDispatchBatch: 400
+  txDispatchMaxRetry: 30
+  txDispatchLeaseSeconds: 15
+  txDispatchWorkers: 16
+
+ratelimit:
+  ip:
+    enabled: false
+    rps: 100000
+    burst: 100000
+  user:
+    enabled: false
+    rps: 100000
+    burst: 100000
+
+agent:
+  intent:
+    llm_enabled: false
+    openai:
+      api_key: ""
+      model: "gpt-4o-mini"
+      base_url: ""
+
+log:
+  level: warn
+  filename: logs/benchmark.log
+  maxSize: 100
+  maxBackups: 5
+  maxAge: 7
+  compress: true
