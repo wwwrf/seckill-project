@@ -113,10 +113,6 @@ func SetupRouter(
 
 			// 订单支付接口
 			authGroup.POST("/order/:orderNo/pay", orderHandler.PayOrder)
-
-			// Agent 智能客服接口
-			authGroup.POST("/service/chat", serviceHandler.Chat)
-			authGroup.POST("/service/complaint", serviceHandler.Complaint)
 		}
 	}
 
