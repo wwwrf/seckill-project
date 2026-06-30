@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -157,7 +158,7 @@ func main() {
 	// 消费者与 Producer 共享同一个 NameServer 地址（Viper 配置）。
 	// 消费者在优雅停机时需显式 Shutdown，确保正在处理的消息完成消费。
 	seckillConsumer := mqconsumer.NewSeckillConsumer(orderRepo, timeoutTaskRepo, seckillCache,
-		viper.GetString("rocketmq.nameServer"),
+		resolveNameServer(viper.GetString("rocketmq.nameServer")),
 		viper.GetInt("rocketmq.txConsumerGoroutines"))
 	// MQ 消费者在后台协程中启动，避免连接 NameServer 时阻塞主流程，导致 Web 服务无法启动
 	go func() {
@@ -332,13 +333,44 @@ func initRedis() error {
 // initMQ 初始化 RocketMQ 普通消息生产者
 func initMQ() error {
 	config := &mq.Config{
-		NameServer: viper.GetString("rocketmq.nameServer"),
+		NameServer: resolveNameServer(viper.GetString("rocketmq.nameServer")),
 		GroupName:  viper.GetString("rocketmq.groupName"),
 		RetryTimes: viper.GetInt("rocketmq.retryTimes"),
 		Timeout:    viper.GetInt("rocketmq.timeout"),
 	}
 
 	return mq.Init(config)
+}
+
+// resolveNameServer 将 RocketMQ NameServer 地址中的 hostname 解析为 IP。
+//
+// RocketMQ Go 客户端内部校验要求 nameserver 必须是 IP:port 格式，
+// 在 Docker 环境中 hostname（如 rocketmq-namesrv）不会被客户端自动解析，
+// 需要在此处提前做 DNS 查询。
+// 解析失败时直接返回原始地址，由 RocketMQ 客户端自行处理。
+func resolveNameServer(addr string) string {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return addr
+	}
+	// 已经是 IP 地址则直接返回
+	if net.ParseIP(host) != nil {
+		return addr
+	}
+	// hostname → IP
+	ips, err := net.LookupHost(host)
+	if err != nil || len(ips) == 0 {
+		logger.Warn("RocketMQ NameServer DNS 解析失败，使用原始地址",
+			zap.String("addr", addr),
+		)
+		return addr
+	}
+	resolved := net.JoinHostPort(ips[0], port)
+	logger.Info("RocketMQ NameServer DNS 解析成功",
+		zap.String("original", addr),
+		zap.String("resolved", resolved),
+	)
+	return resolved
 }
 
 func validateRuntimeConfig() error {
