@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -69,8 +70,15 @@ func main() {
 		ExpiryHours: viper.GetInt("jwt.expiryHours"),
 	})
 
-	// 3. 初始化雪花算法（节点 ID 从配置读取，默认为 1）
+	// 3. 初始化雪花算法
+	// 优先级：环境变量 SNOWFLAKE_NODE > 配置文件 server.snowflakeNode > 默认值 1
+	// 多实例部署时，每个容器通过环境变量注入不同的节点 ID，避免 ID 冲突。
 	snowflakeNode := viper.GetInt64("server.snowflakeNode")
+	if envNode := os.Getenv("SNOWFLAKE_NODE"); envNode != "" {
+		if n, err := strconv.ParseInt(envNode, 10, 64); err == nil && n > 0 {
+			snowflakeNode = n
+		}
+	}
 	if snowflakeNode == 0 {
 		snowflakeNode = 1
 	}

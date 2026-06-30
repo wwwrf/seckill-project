@@ -25,6 +25,17 @@ func NewOrderHandler(orderRepo *repository.OrderRepo) *OrderHandler {
 	return &OrderHandler{orderRepo: orderRepo}
 }
 
+// mustUserID 从 gin.Context 提取 JWT 注入的 userID。
+// 提取失败时直接写入 401 响应并返回 false，调用方应立即 return。
+func (h *OrderHandler) mustUserID(c *gin.Context) (int64, bool) {
+	val, exists := c.Get(middleware.ContextKeyUserID)
+	if !exists {
+		response.Unauthorized(c, "用户未登录")
+		return 0, false
+	}
+	return val.(int64), true
+}
+
 // ListOrdersRequest 订单列表查询参数
 type ListOrdersRequest struct {
 	Page     int `form:"page" binding:"omitempty,min=1"`
@@ -44,12 +55,10 @@ type ListOrdersRequest struct {
 // @Security     ApiKeyAuth
 // @Router       /api/v1/orders [get]
 func (h *OrderHandler) ListOrders(c *gin.Context) {
-	userIDVal, exists := c.Get(middleware.ContextKeyUserID)
-	if !exists {
-		response.Unauthorized(c, "用户未登录")
+	userID, ok := h.mustUserID(c)
+	if !ok {
 		return
 	}
-	userID := userIDVal.(int64)
 
 	var req ListOrdersRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -90,12 +99,10 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /api/v1/order/{orderNo} [get]
 func (h *OrderHandler) GetOrder(c *gin.Context) {
-	userIDVal, exists := c.Get(middleware.ContextKeyUserID)
-	if !exists {
-		response.Unauthorized(c, "用户未登录")
+	userID, ok := h.mustUserID(c)
+	if !ok {
 		return
 	}
-	userID := userIDVal.(int64)
 
 	orderNo := c.Param("orderNo")
 	if orderNo == "" {
@@ -110,13 +117,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 		return
 	}
 
-	if order == nil {
-		response.Error(c, e.CodeBadRequest, "订单不存在")
-		return
-	}
-
-	// 安全校验：只能查自己的订单
-	if order.UserID != userID {
+	if order == nil || order.UserID != userID {
 		response.Error(c, e.CodeBadRequest, "订单不存在")
 		return
 	}
@@ -136,12 +137,10 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 // @Security     ApiKeyAuth
 // @Router       /api/v1/order/{orderNo}/pay [post]
 func (h *OrderHandler) PayOrder(c *gin.Context) {
-	userIDVal, exists := c.Get(middleware.ContextKeyUserID)
-	if !exists {
-		response.Unauthorized(c, "用户未登录")
+	userID, ok := h.mustUserID(c)
+	if !ok {
 		return
 	}
-	userID := userIDVal.(int64)
 
 	orderNo := c.Param("orderNo")
 	if orderNo == "" {
@@ -159,7 +158,6 @@ func (h *OrderHandler) PayOrder(c *gin.Context) {
 		return
 	}
 
-	response.SuccessWithMsg(c, "支付成功", gin.H{
-		"order_no": orderNo,
-	})
+	response.SuccessWithMsg(c, "支付成功", gin.H{"order_no": orderNo})
 }
+

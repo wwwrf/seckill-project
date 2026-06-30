@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"seckill-system/internal/model"
@@ -243,34 +244,12 @@ func (r *OrderRepo) CreateSeckillOrderTx(
 }
 
 // isDuplicateKeyError 判断是否为 MySQL 唯一键冲突错误 (Error 1062)
-//
-// MySQL 唯一键冲突的错误信息格式：
-// "Error 1062: Duplicate entry 'xxx' for key 'uk_xxx'"
-//
-// 这里用字符串匹配而不是依赖 MySQL 驱动的错误码类型，
-// 是因为 GORM 对底层驱动错误做了封装，直接类型断言不总是可靠。
 func isDuplicateKeyError(err error) bool {
 	if err == nil {
 		return false
 	}
-	errMsg := err.Error()
-	// MySQL 1062 错误关键字
-	return contains(errMsg, "1062") || contains(errMsg, "Duplicate entry")
-}
-
-// contains 简单的字符串包含判断
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && searchString(s, substr)
-}
-
-// searchString 在 s 中搜索 substr
-func searchString(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	msg := err.Error()
+	return strings.Contains(msg, "1062") || strings.Contains(msg, "Duplicate entry")
 }
 
 // ==================== 订单查询方法 ====================

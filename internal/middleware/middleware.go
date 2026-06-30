@@ -51,63 +51,34 @@ import (
 // Cleanup: 每 120s 扫描一次过期条目
 var userLimiters = gocache.New(60*time.Second, 120*time.Second)
 
-// getUserLimiter 获取（或创建）指定用户的令牌桶限流器
-//
-// 并发安全说明：
-//
-//	go-cache 的 Get/Add 方法内部有 RWMutex 保护。
-//	极端并发下两个 Goroutine 可能同时 miss 缓存并各自创建 Limiter，
-//	但 Add 方法仅当 Key 不存在时才写入（原子语义），
-//	后创建的 Limiter 会被丢弃，不影响限流精度。
-func getUserLimiter(userID int64, rateLimit float64, burst int) *rate.Limiter {
-	key := fmt.Sprintf("rl:%d", userID)
+// ipLimiters IP 级限流器缓存（Key: "ip:{clientIP}"，TTL: 60s）
+var ipLimiters = gocache.New(60*time.Second, 120*time.Second)
 
-	// 快路径：缓存命中，直接返回
-	if val, found := userLimiters.Get(key); found {
+// getLimiterFromCache 从指定缓存中获取或创建令牌桶限流器
+//
+// 复用逻辑：用户级（getUserLimiter）和 IP 级（getIPLimiter）完全相同，
+// 抽取为公共函数消除重复。
+func getLimiterFromCache(c *gocache.Cache, key string, rateLimit float64, burst int) *rate.Limiter {
+	if val, found := c.Get(key); found {
 		return val.(*rate.Limiter)
 	}
-
-	// 慢路径：创建新 Limiter 并写入缓存
 	limiter := rate.NewLimiter(rate.Limit(rateLimit), burst)
-	// Add 仅在 Key 不存在时写入，避免覆盖并发创建的 Limiter
-	_ = userLimiters.Add(key, limiter, gocache.DefaultExpiration)
-
-	// 重新 Get 确保使用竞争胜出者的 Limiter
-	if val, found := userLimiters.Get(key); found {
+	// Add 仅在 Key 不存在时写入，保证并发安全
+	_ = c.Add(key, limiter, gocache.DefaultExpiration)
+	if val, found := c.Get(key); found {
 		return val.(*rate.Limiter)
 	}
 	return limiter
 }
 
-// ==================== IP 级全局限流器（秒杀前置风控） ====================
-//
-// 与 RateLimiter（用户级）的区别：
-//   - RateLimiter 在 JWT 鉴权之后，基于 UserID，精准限流
-//   - IPRateLimiter 在 JWT 鉴权之前，基于 ClientIP，防御未登录的恶意请求
-//     以及 DDoS 攻击、脚本刷接口等场景
-//
-// 设计要点：
-//   - 每个 IP 每秒最多 10 个请求，突发上限 20
-//   - 阈值高于用户级限流（2/s），因为同 IP 可能有多个合法用户（NAT 场景）
-//   - 只应用于秒杀等高风险接口，不影响普通查询接口
-
-// ipLimiters IP 级限流器缓存
-var ipLimiters = gocache.New(60*time.Second, 120*time.Second)
+// getUserLimiter 获取（或创建）指定用户的令牌桶限流器
+func getUserLimiter(userID int64, rateLimit float64, burst int) *rate.Limiter {
+	return getLimiterFromCache(userLimiters, fmt.Sprintf("rl:%d", userID), rateLimit, burst)
+}
 
 // getIPLimiter 获取指定 IP 的令牌桶限流器
 func getIPLimiter(ip string, rateLimit float64, burst int) *rate.Limiter {
-	key := fmt.Sprintf("ip:%s", ip)
-	if val, found := ipLimiters.Get(key); found {
-		return val.(*rate.Limiter)
-	}
-
-	limiter := rate.NewLimiter(rate.Limit(rateLimit), burst)
-	_ = ipLimiters.Add(key, limiter, gocache.DefaultExpiration)
-
-	if val, found := ipLimiters.Get(key); found {
-		return val.(*rate.Limiter)
-	}
-	return limiter
+	return getLimiterFromCache(ipLimiters, fmt.Sprintf("ip:%s", ip), rateLimit, burst)
 }
 
 // IPRateLimiter 基于 ClientIP 的前置限流中间件（秒杀风控）

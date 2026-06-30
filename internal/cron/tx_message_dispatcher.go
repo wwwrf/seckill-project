@@ -89,32 +89,43 @@ func (d *TxMessageDispatcher) run() {
 	}
 }
 
+// dispatchOnce 执行一轮任务捞取与投递。
+//
+// 采用"排空"模式：只要当前批次捞满（len == Batch），说明队列仍有积压，
+// 立即继续捞下一批，直到捞不满为止。这样高并发积压时无需等待下一个 tick，
+// 可持续消化积压任务，降低端到端投递延迟。
 func (d *TxMessageDispatcher) dispatchOnce() {
 	ctx := context.Background()
-	tasks, err := d.repo.ClaimPendingTasks(ctx, d.cfg.Batch, d.cfg.Lease)
-	if err != nil {
-		logger.Error("主消息调度器: 查询待发送任务失败", zap.Error(err))
-		return
-	}
-	if len(tasks) == 0 {
-		return
-	}
+	for {
+		tasks, err := d.repo.ClaimPendingTasks(ctx, d.cfg.Batch, d.cfg.Lease)
+		if err != nil {
+			logger.Error("主消息调度器: 查询待发送任务失败", zap.Error(err))
+			return
+		}
+		if len(tasks) == 0 {
+			return
+		}
 
-	sem := make(chan struct{}, d.cfg.Workers)
-	done := make(chan struct{}, len(tasks))
-	for _, task := range tasks {
-		sem <- struct{}{}
-		go func(task *model.SeckillTxTask) {
-			defer func() {
-				<-sem
-				done <- struct{}{}
-			}()
-			d.dispatchTask(ctx, task)
-		}(task)
-	}
+		sem := make(chan struct{}, d.cfg.Workers)
+		done := make(chan struct{}, len(tasks))
+		for _, task := range tasks {
+			sem <- struct{}{}
+			go func(task *model.SeckillTxTask) {
+				defer func() {
+					<-sem
+					done <- struct{}{}
+				}()
+				d.dispatchTask(ctx, task)
+			}(task)
+		}
+		for range tasks {
+			<-done
+		}
 
-	for range tasks {
-		<-done
+		// 捞不满说明队列已空，退出循环
+		if len(tasks) < d.cfg.Batch {
+			return
+		}
 	}
 }
 

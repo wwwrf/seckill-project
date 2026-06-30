@@ -1,6 +1,8 @@
 server:
   port: 8080
   mode: debug
+  # 多实例部署时通过环境变量 SNOWFLAKE_NODE 注入不同节点 ID（1-1023）
+  # 单实例时默认使用此值
   snowflakeNode: 1
 
 jwt:
