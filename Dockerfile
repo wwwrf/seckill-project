@@ -2,6 +2,9 @@ FROM golang:1.24 AS builder
 
 WORKDIR /app
 
+# 使用国内 Go module 代理，解决 proxy.golang.org 被墙问题
+ENV GOPROXY=https://goproxy.cn,https://goproxy.io,direct
+
 COPY go.mod go.sum ./
 RUN go mod download
 
