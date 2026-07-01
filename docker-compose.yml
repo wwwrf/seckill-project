@@ -106,9 +106,12 @@ services:
     container_name: seckill-nginx
     restart: unless-stopped
     depends_on:
-      - app1
-      - app2
-      - app3
+      app1:
+        condition: service_healthy
+      app2:
+        condition: service_healthy
+      app3:
+        condition: service_healthy
     ports:
       - "8080:80"
     volumes:
@@ -135,6 +138,12 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - ./logs/app1:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
   app2:
     build:
@@ -157,6 +166,12 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - ./logs/app2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
   app3:
     build:
@@ -179,6 +194,12 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - ./logs/app3:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
 volumes:
   mysql-data:
